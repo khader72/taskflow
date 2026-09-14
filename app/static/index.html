@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TaskFlow</title>
+  <style>
+    :root {
+      --bg: #f4f5fb; --panel: #ffffff; --ink: #1a1c2b; --muted: #6b7091;
+      --line: #e4e6f1; --accent: #5b5bd6; --accent-ink: #ffffff;
+      --ok: #1a7f52; --err: #c0344a; --done: #9aa0bd;
+      --shadow: 0 1px 2px rgba(20,22,50,.06), 0 8px 24px rgba(20,22,50,.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1020; --panel: #191b31; --ink: #eceeffe0; --muted: #9aa0c4;
+        --line: #2a2d4d; --accent: #8b8bf3; --accent-ink: #16182b;
+        --ok: #57d99a; --err: #ff8199; --done: #666c93;
+        --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px rgba(0,0,0,.4);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 24px 16px 64px; }
+    header.app { display: flex; align-items: center; gap: 12px; margin: 12px 0 24px; }
+    .logo {
+      width: 40px; height: 40px; border-radius: 11px; flex: none;
+      background: linear-gradient(135deg, var(--accent), #8a7bf0);
+      display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 20px;
+      box-shadow: var(--shadow);
+    }
+    header.app h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+    header.app p { margin: 0; color: var(--muted); font-size: 13px; }
+    .spacer { flex: 1; }
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+      padding: 20px; box-shadow: var(--shadow);
+    }
+    h2 { font-size: 16px; margin: 0 0 14px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+    input[type=text], input[type=password] {
+      width: 100%; padding: 10px 12px; font-size: 15px; color: var(--ink);
+      background: var(--bg); border: 1px solid var(--line); border-radius: 10px; outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > * { flex: 1; min-width: 0; }
+    button {
+      font: inherit; font-weight: 600; cursor: pointer; border: 1px solid var(--line);
+      background: var(--panel); color: var(--ink); padding: 10px 14px; border-radius: 10px;
+      transition: transform .04s ease, background .15s ease;
+    }
+    button:active { transform: translateY(1px); }
+    button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+    button.ghost { background: transparent; }
+    button.icon { flex: none; padding: 8px 10px; color: var(--muted); }
+    button.icon:hover { color: var(--err); border-color: var(--err); }
+    .msg { margin: 12px 0 0; font-size: 13px; min-height: 18px; }
+    .msg.ok { color: var(--ok); } .msg.err { color: var(--err); }
+    .addbar { display: flex; gap: 10px; margin-bottom: 8px; }
+    .addbar input { flex: 1; }
+    .addbar button { flex: none; }
+    ul.tasks { list-style: none; margin: 8px 0 0; padding: 0; }
+    ul.tasks li {
+      display: flex; align-items: center; gap: 12px; padding: 12px 4px;
+      border-bottom: 1px solid var(--line);
+    }
+    ul.tasks li:last-child { border-bottom: 0; }
+    ul.tasks input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+    .title { flex: 1; min-width: 0; word-break: break-word; }
+    .title.done { color: var(--done); text-decoration: line-through; }
+    .empty { color: var(--muted); text-align: center; padding: 22px 0; font-size: 14px; }
+    .who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .pill { background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--ink); font-weight: 600; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 14px; text-align: center; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="app">
+      <div class="logo">T</div>
+      <div>
+        <h1>TaskFlow</h1>
+        <p>Gestionnaire de tâches</p>
+      </div>
+      <div class="spacer"></div>
+      <div class="who" id="who" hidden>
+        <span class="pill" id="whoName"></span>
+        <button class="ghost" id="logoutBtn">Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- AUTH -->
+    <section class="card" id="authCard">
+      <h2>Connexion</h2>
+      <label for="u">Nom d'utilisateur</label>
+      <input type="text" id="u" autocomplete="username" placeholder="alice" />
+      <label for="p">Mot de passe</label>
+      <input type="password" id="p" autocomplete="current-password" placeholder="secret123" />
+      <div class="row" style="margin-top:16px">
+        <button class="primary" id="loginBtn">Se connecter</button>
+        <button class="ghost" id="registerBtn">Créer un compte</button>
+      </div>
+      <p class="msg" id="authMsg"></p>
+      <p class="hint">Démo de formation DevSecOps &middot; API Flask + SQLite</p>
+    </section>
+
+    <!-- APP -->
+    <section class="card" id="appCard" hidden>
+      <h2>Mes tâches</h2>
+      <div class="addbar">
+        <input type="text" id="newTitle" placeholder="Nouvelle tâche…" />
+        <button class="primary" id="addBtn">Ajouter</button>
+      </div>
+      <p class="msg" id="appMsg"></p>
+      <ul class="tasks" id="taskList"></ul>
+      <p class="empty" id="emptyState" hidden>Aucune tâche pour l'instant. Ajoutez-en une ci-dessus.</p>
+    </section>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const TOKEN_KEY = "taskflow_token";
+    const USER_KEY = "taskflow_user";
+
+    function getToken() { try { return localStorage.getItem(TOKEN_KEY); } catch (e) { return null; } }
+    function setSession(token, user) {
+      try { localStorage.setItem(TOKEN_KEY, token); if (user) localStorage.setItem(USER_KEY, user); } catch (e) {}
+    }
+    function clearSession() {
+      try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); } catch (e) {}
+    }
+    function currentUser() { try { return localStorage.getItem(USER_KEY) || ""; } catch (e) { return ""; } }
+
+    function flash(el, text, kind) {
+      el.textContent = text || "";
+      el.className = "msg" + (kind ? " " + kind : "");
+    }
+
+    async function api(path, { method = "GET", body, auth = false } = {}) {
+      const headers = {};
+      if (body !== undefined) headers["Content-Type"] = "application/json";
+      if (auth) {
+        const t = getToken();
+        if (t) headers["Authorization"] = "Bearer " + t;
+      }
+      const res = await fetch(path, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined });
+      let data = null;
+      try { data = await res.json(); } catch (e) {}
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    // ---- Auth ----
+    async function register() {
+      const username = $("u").value.trim(), password = $("p").value;
+      if (!username || !password) return flash($("authMsg"), "Renseignez un identifiant et un mot de passe.", "err");
+      const r = await api("/register", { method: "POST", body: { username, password } });
+      if (r.status === 201) flash($("authMsg"), "Compte créé. Vous pouvez vous connecter.", "ok");
+      else flash($("authMsg"), (r.data && r.data.error) || "Échec de la création du compte.", "err");
+    }
+
+    async function login() {
+      const username = $("u").value.trim(), password = $("p").value;
+      if (!username || !password) return flash($("authMsg"), "Renseignez un identifiant et un mot de passe.", "err");
+      const r = await api("/login", { method: "POST", body: { username, password } });
+      if (r.ok && r.data && r.data.token) {
+        setSession(r.data.token, username);
+        flash($("authMsg"), "", "");
+        showApp();
+      } else {
+        flash($("authMsg"), (r.data && r.data.error) || "Identifiants invalides.", "err");
+      }
+    }
+
+    function logout() { clearSession(); showAuth(); }
+
+    // ---- Tasks ----
+    async function loadTasks() {
+      const r = await api("/tasks", { auth: true });
+      if (r.status === 401) { logout(); return; }
+      if (!r.ok || !Array.isArray(r.data)) return flash($("appMsg"), "Impossible de charger les tâches.", "err");
+      renderTasks(r.data);
+    }
+
+    function renderTasks(tasks) {
+      const list = $("taskList");
+      list.textContent = "";
+      $("emptyState").hidden = tasks.length > 0;
+      for (const t of tasks) {
+        const li = document.createElement("li");
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!t.done;
+        cb.addEventListener("change", () => toggleTask(t.id, cb.checked));
+
+        const span = document.createElement("span");
+        span.className = "title" + (t.done ? " done" : "");
+        span.textContent = t.title;   // textContent : pas d'injection HTML
+
+        const del = document.createElement("button");
+        del.className = "icon";
+        del.title = "Supprimer";
+        del.textContent = "✕";
+        del.addEventListener("click", () => deleteTask(t.id));
+
+        li.append(cb, span, del);
+        list.appendChild(li);
+      }
+    }
+
+    async function addTask() {
+      const title = $("newTitle").value.trim();
+      if (!title) return;
+      const r = await api("/tasks", { method: "POST", body: { title }, auth: true });
+      if (r.status === 401) { logout(); return; }
+      if (r.status === 201) { $("newTitle").value = ""; flash($("appMsg"), "", ""); loadTasks(); }
+      else flash($("appMsg"), (r.data && r.data.error) || "Échec de l'ajout.", "err");
+    }
+
+    async function toggleTask(id, done) {
+      const r = await api("/tasks/" + id, { method: "PUT", body: { done: done ? 1 : 0 }, auth: true });
+      if (r.status === 401) { logout(); return; }
+      loadTasks();
+    }
+
+    async function deleteTask(id) {
+      const r = await api("/tasks/" + id, { method: "DELETE", auth: true });
+      if (r.status === 401) { logout(); return; }
+      loadTasks();
+    }
+
+    // ---- View state ----
+    function showApp() {
+      $("authCard").hidden = true;
+      $("appCard").hidden = false;
+      $("who").hidden = false;
+      $("whoName").textContent = currentUser() || "connecté";
+      loadTasks();
+    }
+    function showAuth() {
+      $("appCard").hidden = true;
+      $("who").hidden = true;
+      $("authCard").hidden = false;
+      $("p").value = "";
+    }
+
+    // ---- Wire up ----
+    $("loginBtn").addEventListener("click", login);
+    $("registerBtn").addEventListener("click", register);
+    $("logoutBtn").addEventListener("click", logout);
+    $("addBtn").addEventListener("click", addTask);
+    $("p").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+    $("newTitle").addEventListener("keydown", (e) => { if (e.key === "Enter") addTask(); });
+
+    if (getToken()) showApp(); else showAuth();
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Intentionally INCOMPLETE for teaching (Module 10): .env is NOT ignored here.
+# Learners add `.env` during the Secrets Management module.
+__pycache__/
+*.pyc
+.venv/
+taskflow.db
