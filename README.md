@@ -33,7 +33,9 @@ curl -s -X POST localhost:5000/tasks -H "Authorization: Bearer $TOKEN" \
 ## Tests
 ```bash
 pytest -q
+# -> 5 passed, 3 failed
 ```
+Les **3 echecs sont volontaires** : ils prouvent les failles `F1` (injection SQL dans la recherche de taches), `F1b` (injection SQL au login) et `F2` (IDOR). Vous les corrigez pendant les labs, apres quoi les tests passent. L'application, elle, demarre et repond parfaitement.
 
 ## Routes
 | Method | Route | Auth | Description |
