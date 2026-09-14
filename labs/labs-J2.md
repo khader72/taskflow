@@ -92,6 +92,7 @@ volumes:
 
 **Commands**
 ```bash
+mkdir -p docs/security   # vos livrables : ce dossier n'est pas fourni, vous le créez
 trivy image taskflow:dev | tee docs/security/trivy-before.txt
 docker run --rm taskflow:dev sh -c 'whoami'          # root
 docker history taskflow:dev                          # repérer COPY . .

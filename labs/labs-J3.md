@@ -23,6 +23,7 @@ Structure : **Title · Objective · Scenario · Prerequisites · Architecture ·
 **Commands**
 ```bash
 syft taskflow:hardened -o spdx-json > sbom.json
+mkdir -p docs/security   # vos livrables : ce dossier n'est pas fourni, vous le créez
 trivy image --severity HIGH,CRITICAL taskflow:hardened | tee docs/security/trivy-triage.txt
 # Ask Claude Code: "Prioritise these findings for a public-facing Flask API. Justify."
 # ... appliquer, puis :
@@ -147,6 +148,7 @@ app.config["SECRET_KEY"] = key
 ```bash
 # Local DAST rehearsal
 docker compose up -d
+mkdir -p docs/security
 docker run --rm -t --network host ghcr.io/zaproxy/zaproxy zap-baseline.py \
   -t http://localhost:5000 | tee docs/security/zap-before.txt
 ```
@@ -228,6 +230,7 @@ terraform plan                                                # => Warning: Chec
 # ... corriger main.tf ...
 terraform plan && terraform apply -auto-approve               # plus d'avertissement
 cd ..
+mkdir -p docs/security
 checkov -f Dockerfile | tee docs/security/checkov-dockerfile-before.txt
 # ... ajouter HEALTHCHECK au Dockerfile ...
 checkov -f Dockerfile | tee docs/security/checkov-dockerfile-after.txt

@@ -37,6 +37,19 @@ pytest -q
 ```
 Les **3 echecs sont volontaires** : ils prouvent les failles `F1` (injection SQL dans la recherche de taches), `F1b` (injection SQL au login) et `F2` (IDOR). Vous les corrigez pendant les labs, apres quoi les tests passent. L'application, elle, demarre et repond parfaitement.
 
+## Vos livrables - le dossier `docs/`
+
+Au fil des labs, **vous produisez vos propres fichiers de preuve et de documentation** sous `docs/` :
+grille de risques (`docs/security/risk-classification.md`, Lab 02), journal des echanges avec l'IA (`docs/ai-log.md`), sorties de scan (`docs/security/trivy-*.txt`, `zap-*.txt`, `checkov-*.txt`), threat model, rapport d'incident, charte IA. **Ce dossier n'est pas fourni : c'est vous qui le creez.**
+
+Creez-le une fois, avant les exercices qui ecrivent dedans :
+
+```bash
+mkdir -p docs/security
+```
+
+> Sans ce dossier, les commandes du type `... | tee docs/security/xxx.txt` echouent : `tee` ne cree pas les dossiers parents. Chaque lab concerne rappelle le `mkdir` au bon endroit.
+
 ## Routes
 | Method | Route | Auth | Description |
 |---|---|---|---|

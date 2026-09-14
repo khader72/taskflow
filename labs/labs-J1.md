@@ -67,7 +67,11 @@ claude --version         # Claude Code
 
 **Commands** — Aucune.
 
-**Files** — `docs/security/risk-classification.md` (à committer en module 03).
+**Files** — `docs/security/risk-classification.md` : **c'est vous qui créez ce fichier** (le dossier `docs/` n'est pas fourni dans le dépôt). Créez d'abord le dossier, rédigez la grille, puis committez-la au module 03 :
+```bash
+mkdir -p docs/security
+$EDITOR docs/security/risk-classification.md   # rédiger la grille Asset/Threat/Vulnerability/Control
+```
 
 **Expected result** — Grille complétée ; accord du binôme sur le top 3 des risques.
 
